@@ -138,6 +138,7 @@ fn main() -> io::Result<()> {
   let mut showed_low = false;
   let mut level_critical = false;
   loop {
+    std::thread::sleep(SLEEP_TIME);
     update_battery_info(&mut bss)?;
 
     if bss.is_charging {
@@ -197,12 +198,11 @@ fn main() -> io::Result<()> {
     }
     showed_low = true;
     loop {
-      update_battery_info(&mut bss)?;
       if rh.window_should_close() || bss.is_charging {
         break;
       }
-      if !level_critical && bss.level <= BATTERY_LEVEL_CRITICAL {
-        break;
+      if bss.level <= BATTERY_LEVEL_CRITICAL {
+        level_critical = true;
       }
 
       let mut drw = rh.begin_drawing(&rthread);
@@ -276,9 +276,9 @@ fn main() -> io::Result<()> {
       if ign_btn_hover && mouse_pressed {
         break;
       }
+      update_battery_info(&mut bss)?;
     }
     rh.unload_font(font28.make_weak());
     rh.unload_font(font20.make_weak());
-    std::thread::sleep(SLEEP_TIME);
   }
 }
