@@ -60,18 +60,6 @@ fn update_battery_info(battery_status: &mut BatteryStatus) -> io::Result<()> {
   Ok(())
 }
 
-fn hibernate_machine() -> Result<(), std::io::Error> {
-  let output = Command::new("systemctl").arg("hibernate").output()?;
-  if output.status.success() {
-    Ok(())
-  } else {
-    Err(std::io::Error::new(
-      std::io::ErrorKind::Other,
-      format!("Failed to hibernate machine: {}", output.status),
-    ))
-  }
-}
-
 fn search_for_font(font_name: &str) -> Option<String> {
   let local_font_dir = Path::new("~/.local/share/fonts");
   let system_font_dir = Path::new("/usr/share/fonts");
@@ -271,7 +259,11 @@ fn main() -> io::Result<()> {
       );
 
       if hib_btn_hover && mouse_pressed {
-        break hibernate_machine().expect("hibernate machine");
+        let output = Command::new("systemctl").arg("hibernate").output()?;
+        if !output.status.success() {
+          eprintln!("Failed to hibernate machine: {}", output.status);
+        }
+        break;
       }
       if ign_btn_hover && mouse_pressed {
         break;
